@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: back-rejablanca
+    env: node
+    rootDir: back-rejablanca
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build && npm run postbuild
+    startCommand: npm run start:prod

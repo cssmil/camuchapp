@@ -1,0 +1,261 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model usuario {
+  id              Int        @id @default(autoincrement())
+  nombre_completo String?    @db.VarChar(200)
+  email           String     @unique @db.VarChar(100)
+  password        String     @db.VarChar(255)
+  rol             RolUsuario @default(Colaborador)
+
+  // Relaciones
+  ventas              Venta[]
+  gastos              Gasto[]
+  historial_productos HistorialProducto[]
+
+  // Soft delete
+  esta_activo     Boolean   @default(true)
+  fecha_eliminado DateTime?
+  eliminado_por   Int?
+
+  // Auditoría
+  creado_en       DateTime @default(now())
+  actualizado_en  DateTime @updatedAt
+  creado_por      Int?
+  actualizado_por Int?
+
+  @@map("usuario")
+}
+
+enum RolUsuario {
+  Administrador
+  Colaborador
+}
+
+model Categoria {
+  id          Int     @id @default(autoincrement())
+  nombre      String  @db.VarChar(100)
+  descripcion String? @db.Text
+  emoji       String? @db.VarChar(10)
+
+  // Relaciones
+  productos Producto[]
+
+  // Soft delete
+  esta_activo     Boolean   @default(true)
+  fecha_eliminado DateTime?
+  eliminado_por   Int?
+
+  // Auditoría
+  creado_en       DateTime @default(now())
+  actualizado_en  DateTime @updatedAt
+  creado_por      Int?
+  actualizado_por Int?
+
+  @@map("categoria")
+}
+
+model Proveedor {
+  id       Int     @id @default(autoincrement())
+  nombre   String  @db.VarChar(150)
+  contacto String? @db.VarChar(100)
+  telefono String? @db.VarChar(20)
+  email    String? @unique @db.VarChar(100)
+
+  // Relaciones
+  productos Producto[]
+  gastos    Gasto[]
+
+  // Soft delete
+  esta_activo     Boolean   @default(true)
+  fecha_eliminado DateTime?
+  eliminado_por   Int?
+
+  // Auditoría
+  creado_en       DateTime @default(now())
+  actualizado_en  DateTime @updatedAt
+  creado_por      Int?
+  actualizado_por Int?
+
+  @@map("proveedor")
+}
+
+model Producto {
+  id              Int     @id @default(autoincrement())
+  nombre          String  @db.VarChar(200)
+  descripcion     String? @db.Text
+  precio          Decimal @db.Decimal(10, 2)
+  codigo_producto String? @unique @db.VarChar(50)
+  stock           Int     @default(0)
+  stock_minimo    Int     @default(5)
+  fecha_vencimiento DateTime?
+  foto_url        String? @db.VarChar(255)
+  emoji_url       String? @db.VarChar(10)
+
+  // Relaciones
+  categoria_id    Int
+  categoria       Categoria @relation(fields: [categoria_id], references: [id])
+  
+  proveedor_id    Int?
+  proveedor       Proveedor? @relation(fields: [proveedor_id], references: [id])
+
+  detalles_venta  DetalleVenta[]
+  historial       HistorialProducto[]
+
+  // Soft delete
+  esta_activo     Boolean   @default(true)
+  fecha_eliminado DateTime?
+  eliminado_por   Int?
+  
+  // Auditoría
+  creado_en       DateTime  @default(now())
+  actualizado_en  DateTime  @updatedAt
+  creado_por      Int?
+  actualizado_por Int?
+
+  @@map("producto")
+}
+
+model HistorialProducto {
+  id          Int                @id @default(autoincrement())
+  producto_id Int
+  producto    Producto           @relation(fields: [producto_id], references: [id])
+  usuario_id  Int
+  usuario     usuario            @relation(fields: [usuario_id], references: [id])
+  tipo_evento TipoEventoProducto
+  cantidad    Int
+  fecha       DateTime           @default(now())
+
+  @@map("historial_producto")
+}
+
+enum TipoEventoProducto {
+  CREACION
+  AUMENTO_STOCK
+  ELIMINACION
+}
+
+model Cliente {
+  id        Int     @id @default(autoincrement())
+  nombre    String  @db.VarChar(100)
+  apellido  String? @db.VarChar(100)
+  email     String? @unique @db.VarChar(100)
+  telefono  String? @db.VarChar(20)
+  direccion String? @db.VarChar(255)
+
+  // Relaciones
+  ventas Venta[]
+
+  // Soft delete
+  esta_activo     Boolean   @default(true)
+  fecha_eliminado DateTime?
+  eliminado_por   Int?
+
+  // Auditoría
+  creado_en       DateTime @default(now())
+  actualizado_en  DateTime @updatedAt
+  creado_por      Int?
+  actualizado_por Int?
+
+  @@map("cliente")
+}
+
+model Venta {
+  id    Int      @id @default(autoincrement())
+  fecha DateTime @default(now())
+  total Decimal  @db.Decimal(10, 2)
+
+  // Relaciones
+  cliente_id Int?
+  cliente    Cliente? @relation(fields: [cliente_id], references: [id])
+
+  usuario_id Int
+  usuario    usuario @relation(fields: [usuario_id], references: [id])
+
+  detalles_venta DetalleVenta[]
+
+  // Soft delete
+  esta_activo     Boolean   @default(true)
+  fecha_eliminado DateTime?
+  eliminado_por   Int?
+
+  // Auditoría
+  creado_en       DateTime @default(now())
+  actualizado_en  DateTime @updatedAt
+  creado_por      Int? // Este será el mismo que usuario_id
+  actualizado_por Int?
+
+  @@map("venta")
+}
+
+model DetalleVenta {
+  id                Int     @id @default(autoincrement())
+  cantidad          Int
+  precio_unitario   Decimal @db.Decimal(10, 2)
+  descripcion_libre String? @db.VarChar(200) // Para productos no registrados en inventario
+
+  // Relaciones
+  venta_id Int
+  venta    Venta @relation(fields: [venta_id], references: [id])
+
+  producto_id Int? // Opcional, porque puede ser una venta libre
+  producto    Producto? @relation(fields: [producto_id], references: [id])
+
+  // Auditoría (simplificada para esta tabla)
+  creado_en DateTime @default(now())
+
+  @@map("detalle_venta")
+}
+
+model Gasto {
+  id    Int      @id @default(autoincrement())
+  fecha DateTime @default(now())
+  total Decimal  @db.Decimal(10, 2)
+
+  // Relaciones
+  proveedor_id Int?
+  proveedor    Proveedor? @relation(fields: [proveedor_id], references: [id])
+
+  usuario_id Int
+  usuario    usuario @relation(fields: [usuario_id], references: [id])
+
+  detalles_gasto DetalleGasto[]
+
+  // Soft delete
+  esta_activo     Boolean   @default(true)
+  fecha_eliminado DateTime?
+  eliminado_por   Int?
+
+  // Auditoría
+  creado_en       DateTime @default(now())
+  actualizado_en  DateTime @updatedAt
+  creado_por      Int?
+  actualizado_por Int?
+
+  @@map("gasto")
+}
+
+model DetalleGasto {
+  id          Int     @id @default(autoincrement())
+  descripcion String  @db.VarChar(255)
+  costo       Decimal @db.Decimal(10, 2)
+
+  // Relaciones
+  gasto_id Int
+  gasto    Gasto @relation(fields: [gasto_id], references: [id])
+
+  // Auditoría (simplificada)
+  creado_en DateTime @default(now())
+
+  @@map("detalle_gasto")
+}
