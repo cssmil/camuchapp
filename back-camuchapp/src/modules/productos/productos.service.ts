@@ -3,10 +3,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CrearProductoDto } from './dto/crear-producto.dto';
 import { ActualizarProductoDto } from './dto/actualizar-producto.dto';
 import { HistorialProducto, Producto, TipoEventoProducto } from '@prisma/client';
+import { MinioService } from '../minio/minio.service';
 
 @Injectable()
 export class ProductosService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly minioService: MinioService,
+  ) {}
 
   async create(
     crearProductoDto: CrearProductoDto,
@@ -25,7 +29,7 @@ export class ProductosService {
     let emoji_url: string | null = null;
 
     if (file) {
-      foto_url = `/uploads/${file.filename}`;
+      foto_url = await this.minioService.uploadFile(file);
     } else {
       emoji_url = categoria.emoji;
     }
@@ -217,7 +221,7 @@ export class ProductosService {
     let emoji_url: string | null = productoExistente.emoji_url;
 
     if (file) {
-      foto_url = `/uploads/${file.filename}`;
+      foto_url = await this.minioService.uploadFile(file);
       emoji_url = null; // Si se sube foto, se quita el emoji
     } else if (actualizarProductoDto.categoria_id && actualizarProductoDto.categoria_id !== productoExistente.categoria_id) {
       // Si cambia la categoría y no hay foto, actualizamos el emoji

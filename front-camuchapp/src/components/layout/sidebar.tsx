@@ -11,6 +11,7 @@ Home,
 Package,
 ShoppingCart,
 Users,
+Bot,
 } from "lucide-react";
 export function Sidebar() {
   const { user } = useSession();
@@ -71,6 +72,13 @@ export function Sidebar() {
             >
               <BarChart className="h-4 w-4" />
               Reportes
+            </Link>
+            <Link
+              href="/dashboard/agente-ia"
+              className={getLinkClass("/dashboard/agente-ia")}
+            >
+              <Bot className="h-4 w-4" />
+              Agente IA
             </Link>
             {user?.rol === RolUsuario.Administrador && (
               <Link

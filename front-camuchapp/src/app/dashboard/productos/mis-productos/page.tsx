@@ -49,6 +49,15 @@ export default function MisProductosPage() {
     }).format(value);
   };
 
+  const getImageUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    // Asegurar que no haya doble slash
+    const baseUrl = ENV.API_BASE_URL.replace('/api', '');
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${baseUrl}${cleanUrl}`;
+  };
+
   return (
     <div>
       <div className="flex flex-col gap-4 mb-6">
@@ -71,11 +80,11 @@ export default function MisProductosPage() {
                 <div className="relative w-full h-48">
                   {producto.foto_url ? (
                     <Image
-                      src={`${ENV.API_BASE_URL.replace('/api', '')}${producto.foto_url}`}
+                      src={getImageUrl(producto.foto_url)}
                       alt={producto.nombre}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-t-lg"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="rounded-t-lg object-cover"
                       unoptimized
                     />
                   ) : (

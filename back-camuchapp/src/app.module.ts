@@ -12,12 +12,12 @@ import { VentasModule } from './modules/ventas/ventas.module';
 import { GastosModule } from './modules/gastos/gastos.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev',
     }),
     PrismaModule, // Módulo de Prisma ahora es global
     AuthModule,
@@ -29,6 +29,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     GastosModule,
     ProveedoresModule,
     DashboardModule,
+    AiAgentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

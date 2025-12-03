@@ -3,11 +3,10 @@
 
 generator client {
   provider   = "prisma-client-js"
-  engineType = "client"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -22,6 +21,7 @@ model usuario {
   ventas              Venta[]
   gastos              Gasto[]
   historial_productos HistorialProducto[]
+  conversaciones      Conversation[]
 
   // Soft delete
   esta_activo     Boolean   @default(true)
@@ -258,4 +258,30 @@ model DetalleGasto {
   creado_en DateTime @default(now())
 
   @@map("detalle_gasto")
+}
+
+// Modelos para IA Agente
+
+model Conversation {
+  id        String      @id @default(uuid())
+  title     String      @db.VarChar(255)
+  userId    Int
+  user      usuario     @relation(fields: [userId], references: [id])
+  messages  AiMessage[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@map("conversation")
+}
+
+model AiMessage {
+  id             String       @id @default(uuid())
+  role           String       @db.VarChar(20) // 'user' o 'assistant'
+  content        String       @db.Text
+  sql            String?      @db.Text // Opcional, para guardar el SQL generado
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@map("ai_message")
 }

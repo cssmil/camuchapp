@@ -33,8 +33,12 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
+# Copiar el script de inicio
+COPY start.sh ./
+RUN chmod +x start.sh
+
 # El backend corre en el puerto 3001
 EXPOSE 3001
 
-# Comando para iniciar el servidor en producción
-CMD ["node", "dist/main"]
+# Comando para iniciar el servidor usando el script
+CMD ["./start.sh"]
