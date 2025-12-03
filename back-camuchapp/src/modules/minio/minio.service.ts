@@ -36,33 +36,50 @@ export class MinioService implements OnModuleInit {
       if (!bucketExists) {
         await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
         this.logger.log(`Bucket '${this.bucketName}' created successfully.`);
-        
-        // Set bucket policy to public read
-        const policy = {
-          Version: '2012-10-17',
-          Statement: [
-            {
-              Effect: 'Allow',
-              Principal: { AWS: ['*'] },
-              Action: ['s3:GetObject'],
-              Resource: [`arn:aws:s3:::${this.bucketName}/*`],
-            },
-          ],
-        };
-        await this.minioClient.setBucketPolicy(this.bucketName, JSON.stringify(policy));
-        this.logger.log(`Bucket policy set to public read.`);
       }
+
+      // Set bucket policy to public read (ALWAYS, to ensure access)
+      const policy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Principal: { AWS: ['*'] },
+            Action: ['s3:GetObject'],
+            Resource: [`arn:aws:s3:::${this.bucketName}/*`],
+          },
+        ],
+      };
+      await this.minioClient.setBucketPolicy(this.bucketName, JSON.stringify(policy));
+      this.logger.log(`Bucket policy set to public read for '${this.bucketName}'.`);
+
     } catch (err) {
-      this.logger.error(`Error checking/creating bucket: ${err.message}`);
+      this.logger.error(`Error checking/creating bucket or setting policy: ${err.message}`);
     }
   }
 
-  async uploadFile(file: Express.Multer.File): Promise<string> {
-    const randomName = Array(32)
-      .fill(null)
-      .map(() => Math.round(Math.random() * 16).toString(16))
-      .join('');
-    const filename = `${randomName}${extname(file.originalname)}`;
+  async uploadFile(file: Express.Multer.File, folder: string = 'uploads', baseName: string = ''): Promise<string> {
+    let filename: string;
+
+    if (baseName) {
+      const sanitizedName = baseName
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove accents
+        .replace(/[^a-z0-9]/g, '-') // Replace non-alphanumeric with hyphens
+        .replace(/-+/g, '-')        // Replace multiple hyphens with single one
+        .replace(/^-|-$/g, '');     // Remove leading/trailing hyphens
+      
+      const timestamp = Date.now();
+      const extension = extname(file.originalname);
+      filename = `${folder}/${sanitizedName}-${timestamp}${extension}`;
+    } else {
+      const randomName = Array(32)
+        .fill(null)
+        .map(() => Math.round(Math.random() * 16).toString(16))
+        .join('');
+      filename = `${folder}/${randomName}${extname(file.originalname)}`;
+    }
     
     await this.minioClient.putObject(
       this.bucketName,

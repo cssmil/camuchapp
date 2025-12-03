@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CrearProductoDto } from './dto/crear-producto.dto';
 import { ActualizarProductoDto } from './dto/actualizar-producto.dto';
-import { HistorialProducto, Producto, TipoEventoProducto } from '@prisma/client';
+import { HistorialProducto, Producto, TipoEventoProducto, Categoria } from '@prisma/client';
 import { MinioService } from '../minio/minio.service';
 
 @Injectable()
@@ -29,7 +29,8 @@ export class ProductosService {
     let emoji_url: string | null = null;
 
     if (file) {
-      foto_url = await this.minioService.uploadFile(file);
+      const nombreArchivo = `${categoria.nombre}-${crearProductoDto.nombre}`;
+      foto_url = await this.minioService.uploadFile(file, 'productos', nombreArchivo);
     } else {
       emoji_url = categoria.emoji;
     }
@@ -215,13 +216,27 @@ export class ProductosService {
     usuario_id: number,
     file?: Express.Multer.File,
   ): Promise<Producto> {
-    const productoExistente = await this.findOne(id);
+    const productoExistente = await this.findOne(id) as Producto & { categoria: Categoria };
 
     let foto_url: string | null = productoExistente.foto_url;
     let emoji_url: string | null = productoExistente.emoji_url;
 
     if (file) {
-      foto_url = await this.minioService.uploadFile(file);
+      // Obtener nombre de categoría para el archivo
+      let categoriaNombre = productoExistente.categoria.nombre;
+      if (actualizarProductoDto.categoria_id && actualizarProductoDto.categoria_id !== productoExistente.categoria_id) {
+        const nuevaCategoria = await this.prisma.categoria.findUnique({
+          where: { id: actualizarProductoDto.categoria_id },
+        });
+        if (nuevaCategoria) {
+          categoriaNombre = nuevaCategoria.nombre;
+        }
+      }
+
+      const nombreProducto = actualizarProductoDto.nombre || productoExistente.nombre;
+      const nombreArchivo = `${categoriaNombre}-${nombreProducto}`;
+
+      foto_url = await this.minioService.uploadFile(file, 'productos', nombreArchivo);
       emoji_url = null; // Si se sube foto, se quita el emoji
     } else if (actualizarProductoDto.categoria_id && actualizarProductoDto.categoria_id !== productoExistente.categoria_id) {
       // Si cambia la categoría y no hay foto, actualizamos el emoji
