@@ -12,6 +12,8 @@ Package,
 ShoppingCart,
 Users,
 Bot,
+Truck,
+Contact,
 } from "lucide-react";
 export function Sidebar() {
   const { user } = useSession();
@@ -66,6 +68,20 @@ export function Sidebar() {
                 Categorías
               </Link>
             )}
+            <Link
+              href="/dashboard/clientes"
+              className={getLinkClass("/dashboard/clientes")}
+            >
+              <Contact className="h-4 w-4" />
+              Clientes
+            </Link>
+            <Link
+              href="/dashboard/proveedores"
+              className={getLinkClass("/dashboard/proveedores")}
+            >
+              <Truck className="h-4 w-4" />
+              Proveedores
+            </Link>
             <Link
               href="/dashboard/reportes"
               className={getLinkClass("/dashboard/reportes")}

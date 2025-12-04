@@ -18,6 +18,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
   Table,
   TableBody,
   TableCell,
@@ -25,7 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Trash2 } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
+import { ProveedoresDialog } from '../proveedores/ProveedoresDialog';
 
 interface ItemGasto {
   id: string;
@@ -117,21 +124,34 @@ export function CrearGastoForm() {
             </CardContent>
           </Card>
 
-          <div className="hidden">
-            <h3 className="text-lg font-semibold mb-2">Asignar Proveedor (Opcional)</h3>
-            <Select onValueChange={(value) => setProveedorSeleccionado(Number(value))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar un proveedor" />
-              </SelectTrigger>
-              <SelectContent>
-                {proveedores.map((p) => (
-                  <SelectItem key={p.id} value={String(p.id)}>
-                    {p.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="proveedor">
+              <AccordionTrigger>Proveedor (Opcional)</AccordionTrigger>
+              <AccordionContent>
+                <div className="flex gap-2 pt-2">
+                  <Select value={proveedorSeleccionado?.toString()} onValueChange={(value) => setProveedorSeleccionado(Number(value))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccionar un proveedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {proveedores.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>
+                          {p.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <ProveedoresDialog 
+                    trigger={<Button variant="outline" size="icon" title="Crear Nuevo Proveedor"><PlusCircle className="h-4 w-4" /></Button>}
+                    onProveedorCreado={(nuevo) => {
+                        setProveedores(prev => [...prev, nuevo]);
+                        setProveedorSeleccionado(nuevo.id);
+                    }}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <div className="mt-6">
             <Button onClick={handleSubmit} disabled={isLoading || items.length === 0} className="w-full">

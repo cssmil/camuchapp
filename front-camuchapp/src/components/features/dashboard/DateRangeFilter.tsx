@@ -1,38 +1,48 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRange } from 'react-day-picker';
-import { format, startOfMonth, startOfWeek, startOfToday, subDays } from 'date-fns';
+import { format, startOfMonth, startOfWeek, startOfToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-type Preset = 'this_week' | 'this_month' | 'today' | 'all_time';
+export type Preset = 'this_week' | 'this_month' | 'today' | 'all_time' | 'custom';
 
 interface DateRangeFilterProps {
   onDateChange: (dateRange: DateRange | undefined) => void;
+  onPresetChange?: (preset: Preset) => void;
+  activePreset?: Preset;
   defaultRange?: Preset;
 }
 
-export function DateRangeFilter({ onDateChange, defaultRange = 'this_week' }: DateRangeFilterProps) {
-  const getInitialDateRange = (): DateRange | undefined => {
-    const today = startOfToday();
-    switch (defaultRange) {
-      case 'this_month':
-        return { from: startOfMonth(today), to: today };
-      case 'this_week':
-        return { from: startOfWeek(today, { locale: es }), to: today };
-      case 'today':
-        return { from: today, to: today };
-      case 'all_time':
-      default:
-        return undefined;
-    }
-  };
+export function DateRangeFilter({ 
+  onDateChange, 
+  onPresetChange, 
+  activePreset, 
+  defaultRange = 'this_month' 
+}: DateRangeFilterProps) {
+  
+  const [date, setDate] = useState<DateRange | undefined>();
+  const [internalPreset, setInternalPreset] = useState<Preset>(defaultRange);
 
-  const [date, setDate] = useState<DateRange | undefined>(getInitialDateRange());
-  const [activePreset, setActivePreset] = useState<Preset | null>(defaultRange);
+  const currentPreset = activePreset ?? internalPreset;
+
+  // Initialize date based on defaultRange on mount
+  useEffect(() => {
+    const today = startOfToday();
+    if (defaultRange === 'this_month') {
+       setDate({ from: startOfMonth(today), to: today });
+       // Ensure parent gets the initial date if needed, though usually parent fetches on its own
+    } else if (defaultRange === 'this_week') {
+       setDate({ from: startOfWeek(today, { locale: es }), to: today });
+    } else if (defaultRange === 'today') {
+       setDate({ from: today, to: today });
+    } else if (defaultRange === 'all_time') {
+       setDate(undefined);
+    }
+  }, []);
 
   const handlePresetClick = (preset: Preset) => {
     const today = startOfToday();
@@ -54,20 +64,22 @@ export function DateRangeFilter({ onDateChange, defaultRange = 'this_week' }: Da
     }
     setDate(newRange);
     onDateChange(newRange);
-    setActivePreset(preset);
+    setInternalPreset(preset);
+    if (onPresetChange) onPresetChange(preset);
   };
 
   const handleDateSelect = (range: DateRange | undefined) => {
     setDate(range);
     onDateChange(range);
-    setActivePreset(null); // Custom range selected
+    setInternalPreset('custom');
+    if (onPresetChange) onPresetChange('custom'); 
   }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline">
+          <Button variant="outline" className={`cursor-pointer ${currentPreset === 'custom' ? 'border-primary text-primary' : ''}`}>
             {date?.from ? (
               date.to ? (
                 <>
@@ -92,10 +104,10 @@ export function DateRangeFilter({ onDateChange, defaultRange = 'this_week' }: Da
           />
         </PopoverContent>
       </Popover>
-      <Button variant={activePreset === 'today' ? 'default' : 'outline'} onClick={() => handlePresetClick('today')}>Hoy</Button>
-      <Button variant={activePreset === 'this_week' ? 'default' : 'outline'} onClick={() => handlePresetClick('this_week')}>Esta semana</Button>
-      <Button variant={activePreset === 'this_month' ? 'default' : 'outline'} onClick={() => handlePresetClick('this_month')}>Este mes</Button>
-      <Button variant={activePreset === 'all_time' ? 'default' : 'outline'} onClick={() => handlePresetClick('all_time')}>Desde siempre</Button>
+      <Button className="cursor-pointer" variant={currentPreset === 'today' ? 'default' : 'outline'} onClick={() => handlePresetClick('today')}>Hoy</Button>
+      <Button className="cursor-pointer" variant={currentPreset === 'this_week' ? 'default' : 'outline'} onClick={() => handlePresetClick('this_week')}>Esta semana</Button>
+      <Button className="cursor-pointer" variant={currentPreset === 'this_month' ? 'default' : 'outline'} onClick={() => handlePresetClick('this_month')}>Este mes</Button>
+      <Button className="cursor-pointer" variant={currentPreset === 'all_time' ? 'default' : 'outline'} onClick={() => handlePresetClick('all_time')}>Desde siempre</Button>
     </div>
   );
 }

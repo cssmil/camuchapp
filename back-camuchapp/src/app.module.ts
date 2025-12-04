@@ -12,7 +12,7 @@ import { VentasModule } from './modules/ventas/ventas.module';
 import { GastosModule } from './modules/gastos/gastos.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -29,7 +29,7 @@ import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
     GastosModule,
     ProveedoresModule,
     DashboardModule,
-    AiAgentModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -8,6 +8,11 @@ export class CrearProveedorDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(20)
+  ruc?: string;
+
+  @IsString()
+  @IsOptional()
   @MaxLength(100)
   contacto?: string;
 

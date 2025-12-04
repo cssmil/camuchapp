@@ -5,11 +5,12 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 
 interface Props {
   data: TopSellingProduct[];
+  periodLabel: string;
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
-export function TopSellingProductsPieChart({ data }: Props) {
+export function TopSellingProductsPieChart({ data, periodLabel }: Props) {
   const chartData = data.map(item => ({
     name: item.name,
     value: item.value,
@@ -19,7 +20,7 @@ export function TopSellingProductsPieChart({ data }: Props) {
     <Card>
         <CardHeader>
             <CardTitle>Productos Más Vendidos</CardTitle>
-            <CardDescription>Top 5 productos por unidades vendidas.</CardDescription>
+            <CardDescription>Top 5 productos por unidades vendidas {periodLabel}.</CardDescription>
         </CardHeader>
         <CardContent>
             <ResponsiveContainer width="100%" height={300}>

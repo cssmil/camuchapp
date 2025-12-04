@@ -1,10 +1,10 @@
 import api from './api';
 
 export interface AiResponse {
-  question: string;
-  generatedSql: string;
-  data: any[];
   answer: string;
+  sql?: string;
+  sources?: string[];
+  products?: any[];
   messageId?: string;
   trace?: string[];
 }
@@ -28,30 +28,32 @@ export interface Message {
 export const aiService = {
   // Crear nueva conversación
   createConversation: async (title?: string): Promise<Conversation> => {
-    const response = await api.post<Conversation>('/ai/conversations', { title });
+    // Endpoint restaurado
+    const response = await api.post<Conversation>('/chat/conversations', { title });
     return response.data;
   },
 
   // Listar historial de conversaciones
   getConversations: async (): Promise<Conversation[]> => {
-    const response = await api.get<Conversation[]>('/ai/conversations');
+    const response = await api.get<Conversation[]>('/chat/conversations');
     return response.data;
   },
 
   // Obtener detalle de una conversación
   getConversation: async (id: string): Promise<Conversation> => {
-    const response = await api.get<Conversation>(`/ai/conversations/${id}`);
+    const response = await api.get<Conversation>(`/chat/conversations/${id}`);
     return response.data;
   },
 
   // Eliminar conversación
   deleteConversation: async (id: string): Promise<void> => {
-    await api.delete(`/ai/conversations/${id}`);
+    await api.delete(`/chat/conversations/${id}`);
   },
 
   // Enviar mensaje (Chat con memoria)
+  // Nota: El backend ahora manejará la persistencia interna
   sendMessage: async (conversationId: string, message: string): Promise<AiResponse> => {
-    const response = await api.post<AiResponse>(`/ai/chat/${conversationId}`, { message });
+    const response = await api.post<AiResponse>(`/chat/conversations/${conversationId}/messages`, { message });
     return response.data;
   },
 };

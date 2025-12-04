@@ -5,15 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { aiService, Conversation, Message as ServiceMessage } from '@/services/ai.service';
-import { Loader2, Send, Bot, User, Menu, ChevronDown, Activity } from 'lucide-react';
+import { Loader2, Send, Bot, User, Activity, ChevronDown, Menu } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { ChatHistorySidebar } from '@/components/features/ai/chat-history-sidebar';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // Opcional para móvil, usando layout flex por ahora
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
-// Mapeamos el tipo del servicio al tipo local de UI si es necesario, o usamos el del servicio
 type Message = ServiceMessage;
 
 export default function AgenteIaPage() {
@@ -70,7 +69,7 @@ export default function AgenteIaPage() {
       const newChat = await aiService.createConversation("Nueva consulta");
       setConversations([newChat, ...conversations]);
       setCurrentConversationId(newChat.id);
-      setMessages([]); // Chat vacío
+      setMessages([]);
     } catch (error) {
       console.error(error);
     } finally {
@@ -97,10 +96,9 @@ export default function AgenteIaPage() {
 
     let activeId = currentConversationId;
 
-    // Si no hay chat activo, crear uno primero
+    // Si no hay chat activo, crear uno
     if (!activeId) {
         try {
-            // Usar las primeras palabras como título
             const title = input.slice(0, 30) + "...";
             const newChat = await aiService.createConversation(title);
             setConversations([newChat, ...conversations]);
@@ -130,15 +128,13 @@ export default function AgenteIaPage() {
         id: response.messageId || Date.now().toString(),
         role: 'assistant',
         content: response.answer,
-        sql: response.generatedSql,
+        sql: response.sql,
         trace: response.trace,
         createdAt: new Date().toISOString()
       };
 
       setMessages((prev) => [...prev, botMsg]);
-      
-      // Actualizar la lista de conversaciones para que suba la reciente
-      loadConversations(); 
+      loadConversations(); // Refrescar orden
 
     } catch (error) {
       console.error(error);
@@ -166,19 +162,39 @@ export default function AgenteIaPage() {
       
       {/* Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <CardHeader className="border-b px-6 py-4 flex flex-row items-center justify-between">
+        <CardHeader className="border-b px-4 py-3 flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
+             {/* Mobile Menu Trigger */}
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="mr-2">
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-80">
+                  <ChatHistorySidebar 
+                    conversations={conversations}
+                    activeId={currentConversationId}
+                    onSelect={handleSelectConversation}
+                    onDelete={handleDeleteChat}
+                    onNewChat={handleNewChat}
+                    isLoading={isSidebarLoading}
+                  />
+                </SheetContent>
+              </Sheet>
+            </div>
             <Bot className="w-6 h-6 text-primary" />
-            <CardTitle className="text-lg">Agente IA Farmacéutico</CardTitle>
+            <CardTitle className="text-lg truncate">Agente IA Camucha</CardTitle>
           </div>
         </CardHeader>
         
         <CardContent className="flex-1 p-0 overflow-hidden relative bg-gray-50/10">
           {!currentConversationId && messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
+              <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4 p-4 text-center">
                   <Bot className="w-16 h-16 opacity-20" />
-                  <p>Selecciona un chat o inicia una nueva conversación</p>
-                  <Button onClick={handleNewChat}>Comenzar</Button>
+                  <p>Selecciona un chat del historial o inicia una nueva conversación</p>
+                  <Button onClick={handleNewChat}>Comenzar Chat</Button>
               </div>
           ) : (
             <ScrollArea className="h-full p-4 md:p-6">
@@ -217,12 +233,27 @@ export default function AgenteIaPage() {
                         
                         {message.role === 'assistant' && (
                           <div className="flex flex-col gap-1 mt-1 w-full max-w-full">
-                            
-                            {/* New Collapsible Trace UI */}
-                            {message.trace && message.trace.length > 0 && (
+                            {/* SQL Debug info if available (only if no trace is shown) */}
+                            {message.sql && (!message.trace || message.trace.length === 0) && (
                               <Collapsible>
                                 <CollapsibleTrigger asChild>
                                   <Button variant="ghost" size="sm" className="h-6 p-0 text-xs text-gray-400 hover:text-primary w-full justify-start gap-1">
+                                    <Activity className="w-3 h-3" />
+                                    Ver SQL Generado
+                                    <ChevronDown className="w-3 h-3 ml-1" />
+                                  </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="text-[10px] text-gray-500 font-mono bg-gray-50 rounded-md p-2 border mt-1 space-y-1 overflow-x-auto">
+                                  <div>{message.sql}</div>
+                                </CollapsibleContent>
+                              </Collapsible>
+                            )}
+
+                            {/* Trace Debug info if available */}
+                            {message.trace && message.trace.length > 0 && (
+                              <Collapsible>
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-6 p-0 text-xs text-gray-400 hover:text-primary w-full justify-start gap-1 mt-1">
                                     <Activity className="w-3 h-3" />
                                     Ver proceso de pensamiento
                                     <ChevronDown className="w-3 h-3 ml-1" />
@@ -277,8 +308,8 @@ export default function AgenteIaPage() {
         </CardFooter>
       </div>
 
-      {/* History Sidebar (Hidden on mobile by default, logic simplified for now) */}
-      <div className="hidden md:block h-full">
+      {/* Sidebar Desktop */}
+      <div className="hidden md:block h-full border-l">
         <ChatHistorySidebar 
             conversations={conversations}
             activeId={currentConversationId}

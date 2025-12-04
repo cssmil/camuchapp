@@ -33,6 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Search, Trash2, PlusCircle, MinusCircle } from 'lucide-react';
+import { ClientesDialog } from '../clientes/ClientesDialog';
 
 // Estructura unificada para cualquier item en el carrito
 interface ItemEnCarrito {
@@ -218,21 +219,34 @@ export function CrearVentaForm() {
             </AccordionItem>
           </Accordion>
 
-          <div className="hidden">
-            <h3 className="text-lg font-semibold mb-2">Asignar Cliente (Opcional)</h3>
-            <Select onValueChange={(value) => setClienteSeleccionado(Number(value))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar un cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clientes.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    {c.nombre} {c.apellido || ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="cliente">
+              <AccordionTrigger>Cliente (Opcional)</AccordionTrigger>
+              <AccordionContent>
+                <div className="flex gap-2 pt-2">
+                  <Select value={clienteSeleccionado?.toString()} onValueChange={(value) => setClienteSeleccionado(Number(value))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccionar cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientes.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {c.nombre} {c.apellido || ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <ClientesDialog 
+                    trigger={<Button variant="outline" size="icon" title="Crear Nuevo Cliente"><PlusCircle className="h-4 w-4" /></Button>}
+                    onClienteCreado={(nuevo) => {
+                        setClientes(prev => [...prev, nuevo]);
+                        setClienteSeleccionado(nuevo.id);
+                    }}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <div className="mt-6">
             <Button onClick={handleSubmit} disabled={isLoading || carrito.length === 0} className="w-full">

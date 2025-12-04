@@ -3,11 +3,13 @@
 
 generator client {
   provider   = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 model usuario {
@@ -68,6 +70,7 @@ model Categoria {
 model Proveedor {
   id       Int     @id @default(autoincrement())
   nombre   String  @db.VarChar(150)
+  ruc      String? @unique @db.VarChar(20)
   contacto String? @db.VarChar(100)
   telefono String? @db.VarChar(20)
   email    String? @unique @db.VarChar(100)
@@ -101,6 +104,9 @@ model Producto {
   fecha_vencimiento DateTime?
   foto_url        String? @db.VarChar(255)
   emoji_url       String? @db.VarChar(10)
+
+  // Vector field for RAG
+  embedding     Unsupported("vector(768)")?
 
   // Relaciones
   categoria_id    Int
@@ -147,6 +153,7 @@ enum TipoEventoProducto {
 
 model Cliente {
   id        Int     @id @default(autoincrement())
+  dni       String? @unique @db.VarChar(20)
   nombre    String  @db.VarChar(100)
   apellido  String? @db.VarChar(100)
   email     String? @unique @db.VarChar(100)

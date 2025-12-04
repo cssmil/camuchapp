@@ -5,12 +5,13 @@ import { CreditCard, TrendingDown, TrendingUp } from "lucide-react";
 
 interface Props {
   summary: DashboardSummary;
+  periodLabel: string;
 }
 
 const formatCurrency = (amount: number) => {
 return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(amount);
 }
-export function SummaryCards({ summary }: Props) {
+export function SummaryCards({ summary, periodLabel }: Props) {
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <Card>
@@ -20,7 +21,7 @@ export function SummaryCards({ summary }: Props) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatCurrency(summary.totalVentas)}</div>
-          <p className="text-xs text-muted-foreground">Total de ingresos registrados</p>
+          <p className="text-xs text-muted-foreground">Total de ingresos registrados {periodLabel}</p>
         </CardContent>
       </Card>
       <Card>
@@ -30,7 +31,7 @@ export function SummaryCards({ summary }: Props) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatCurrency(summary.totalGastos)}</div>
-          <p className="text-xs text-muted-foreground">Total de egresos registrados</p>
+          <p className="text-xs text-muted-foreground">Total de egresos registrados {periodLabel}</p>
         </CardContent>
       </Card>
       <Card>
@@ -42,7 +43,7 @@ export function SummaryCards({ summary }: Props) {
           <div className={`text-2xl font-bold ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {formatCurrency(summary.balance)}
           </div>
-          <p className="text-xs text-muted-foreground">Diferencia entre ventas y gastos</p>
+          <p className="text-xs text-muted-foreground">Diferencia entre ventas y gastos {periodLabel}</p>
         </CardContent>
       </Card>
     </div>

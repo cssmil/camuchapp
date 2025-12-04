@@ -42,6 +42,7 @@ export interface Categoria {
 export interface Proveedor {
   id: number;
   nombre: string;
+  ruc?: string | null;
   contacto?: string | null;
   telefono?: string | null;
   email?: string | null;
@@ -72,6 +73,7 @@ export interface Producto {
 
 export interface Cliente {
   id: number;
+  dni?: string | null;
   nombre: string;
   apellido?: string | null;
   email?: string | null;

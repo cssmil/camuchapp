@@ -155,11 +155,13 @@ export class ProductosService {
           {
             nombre: {
               contains: termino,
+              mode: 'insensitive',
             },
           },
           {
             codigo_producto: {
               contains: termino,
+              mode: 'insensitive',
             },
           },
         ],

@@ -3,6 +3,11 @@ import { IsString, IsEmail, IsOptional, IsNotEmpty, MaxLength } from 'class-vali
 export class CrearClienteDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(20)
+  dni: string;
+
+  @IsString()
+  @IsNotEmpty()
   @MaxLength(100)
   nombre: string;
 

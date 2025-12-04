@@ -5,17 +5,18 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface Props {
   data: SalesOverTime[];
+  periodLabel: string;
 }
 
 const formatCurrency = (amount: number) => {
 return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(amount);
 }
-export function SalesLineChart({ data }: Props) {
+export function SalesLineChart({ data, periodLabel }: Props) {
   return (
     <Card>
         <CardHeader>
-            <CardTitle>Ventas de los Últimos 7 Días</CardTitle>
-            <CardDescription>Evolución de los ingresos diarios.</CardDescription>
+            <CardTitle>Ventas {periodLabel}</CardTitle>
+            <CardDescription>Evolución de los ingresos {periodLabel}.</CardDescription>
         </CardHeader>
         <CardContent>
             <ResponsiveContainer width="100%" height={300}>
