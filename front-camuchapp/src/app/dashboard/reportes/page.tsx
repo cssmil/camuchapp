@@ -13,14 +13,18 @@ import { DateRange } from 'react-day-picker';
 
 import { Button } from '@/components/ui/button';
 import { exportToExcel } from '@/utils/excel';
-import { format } from 'date-fns';
+import { format, startOfWeek, endOfToday } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function PaginaReportes() {
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [gastos, setGastos] = useState<Gasto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const today = endOfToday();
+    return { from: startOfWeek(today, { locale: es }), to: today };
+  });
 
   const fetchData = useCallback(async () => {
     try {

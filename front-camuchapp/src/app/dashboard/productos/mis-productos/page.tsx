@@ -60,6 +60,7 @@ export default function MisProductosPage() {
 
   return (
     <div>
+      
       <div className="flex flex-col gap-4 mb-6">
         <Input
           placeholder="Buscar producto por nombre..."
@@ -73,9 +74,9 @@ export default function MisProductosPage() {
       {error && <p className="text-red-500">{error}</p>}
 
       {!isLoading && !error && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
           {filteredProductos.map((producto) => (
-            <Card key={producto.id}>
+            <Card key={producto.id} className="pt-0 pb-3 gap-2">
               <CardHeader className="p-0">
                 <div className="relative w-full h-48">
                   {producto.foto_url ? (
@@ -94,7 +95,7 @@ export default function MisProductosPage() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-4 pt-0">
                 <CardTitle className="text-base font-bold mb-1">{producto.nombre}</CardTitle>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <Badge variant="outline">{producto.categoria.nombre}</Badge>

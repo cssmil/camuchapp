@@ -16,6 +16,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     await this.$connect();
+    // Configurar la zona horaria de la sesión de base de datos a Perú (GMT-5)
+    await this.$queryRawUnsafe("SET timezone = 'America/Lima';");
   }
 
   async onModuleDestroy() {

@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DateRangeFilter, Preset } from "./DateRangeFilter";
 import { DateRange } from "react-day-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { startOfMonth, startOfToday } from "date-fns";
+import { startOfMonth, startOfToday, endOfToday } from "date-fns";
 
 export function DashboardClient() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -27,25 +27,21 @@ export function DashboardClient() {
   const [preset, setPreset] = useState<Preset>('this_month');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const today = startOfToday();
-    return { from: startOfMonth(today), to: today };
+    return { from: startOfMonth(today), to: endOfToday() };
   });
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTimeSensitiveData = async () => {
       try {
         setLoading(true);
-        const [summaryData, salesData, topProductsData, lowStockData, expiringData] = await Promise.all([
+        const [summaryData, salesData, topProductsData] = await Promise.all([
           dashboardService.getSummary(dateRange?.from?.toISOString(), dateRange?.to?.toISOString()),
           dashboardService.getSalesOverTime(dateRange?.from?.toISOString(), dateRange?.to?.toISOString()),
           dashboardService.getTopSellingProducts(dateRange?.from?.toISOString(), dateRange?.to?.toISOString()),
-          dashboardService.getLowStockProducts(),
-          dashboardService.getExpiringProducts(),
         ]);
         setSummary(summaryData);
         setSalesOverTime(salesData);
         setTopProducts(topProductsData);
-        setLowStock(lowStockData);
-        setExpiringProducts(expiringData);
       } catch (err) {
         setError("No se pudieron cargar los datos del dashboard. Intente de nuevo más tarde.");
         console.error(err);
@@ -54,8 +50,24 @@ export function DashboardClient() {
       }
     };
 
-    fetchData();
+    fetchTimeSensitiveData();
   }, [dateRange]);
+
+  useEffect(() => {
+    const fetchInventoryData = async () => {
+        try {
+            const [lowStockData, expiringData] = await Promise.all([
+                dashboardService.getLowStockProducts(),
+                dashboardService.getExpiringProducts(),
+            ]);
+            setLowStock(lowStockData);
+            setExpiringProducts(expiringData);
+        } catch (err) {
+            console.error("Error fetching inventory data", err);
+        }
+    }
+    fetchInventoryData();
+  }, []);
 
   const getPeriodLabel = () => {
     switch (preset) {

@@ -21,8 +21,8 @@ export class DashboardService {
     const whereClause: any = { esta_activo: true };
     if (fecha_inicio && fecha_fin) {
       whereClause.creado_en = {
-        gte: startOfDay(this.parseDate(fecha_inicio)),
-        lte: endOfDay(this.parseDate(fecha_fin)),
+        gte: this.parseDate(fecha_inicio),
+        lte: this.parseDate(fecha_fin),
       };
     }
 
@@ -52,8 +52,8 @@ export class DashboardService {
   }
 
   async getSalesOverTime(fecha_inicio?: string, fecha_fin?: string) {
-    const endDate = fecha_fin ? endOfDay(this.parseDate(fecha_fin)) : new Date();
-    const startDate = fecha_inicio ? startOfDay(this.parseDate(fecha_inicio)) : startOfDay(subDays(endDate, 6));
+    const endDate = fecha_fin ? this.parseDate(fecha_fin) : endOfDay(new Date());
+    const startDate = fecha_inicio ? this.parseDate(fecha_inicio) : startOfDay(subDays(endDate, 6));
 
     const sales: { date: string; total: number }[] = await this.prisma.$queryRaw`
         SELECT DATE(creado_en) as date, SUM(total) as total
@@ -88,8 +88,8 @@ export class DashboardService {
     if (fecha_inicio && fecha_fin) {
       whereClause.venta = {
         creado_en: {
-          gte: startOfDay(this.parseDate(fecha_inicio)),
-          lte: endOfDay(this.parseDate(fecha_fin)),
+          gte: this.parseDate(fecha_inicio),
+          lte: this.parseDate(fecha_fin),
         },
       };
     }
@@ -132,7 +132,15 @@ export class DashboardService {
 
   async getLowStockProducts(): Promise<Producto[]> {
     const products = await this.prisma.$queryRawUnsafe<Producto[]>(
-      'SELECT * FROM producto WHERE stock <= stock_minimo AND esta_activo = true ORDER BY stock ASC LIMIT 10'
+      `SELECT 
+        id, nombre, descripcion, precio, codigo_producto, stock, stock_minimo, 
+        fecha_vencimiento, foto_url, emoji_url, categoria_id, proveedor_id, 
+        esta_activo, fecha_eliminado, eliminado_por, creado_en, actualizado_en, 
+        creado_por, actualizado_por
+       FROM producto 
+       WHERE stock <= stock_minimo AND esta_activo = true 
+       ORDER BY stock ASC 
+       LIMIT 10`
     );
     return products;
   }

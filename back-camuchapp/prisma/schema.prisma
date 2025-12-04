@@ -203,6 +203,8 @@ model Venta {
   actualizado_por Int?
 
   @@map("venta")
+  @@index([creado_en])
+  @@index([esta_activo])
 }
 
 model DetalleVenta {
@@ -250,6 +252,8 @@ model Gasto {
   actualizado_por Int?
 
   @@map("gasto")
+  @@index([creado_en])
+  @@index([esta_activo])
 }
 
 model DetalleGasto {

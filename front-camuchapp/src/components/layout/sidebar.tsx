@@ -32,7 +32,7 @@ export function Sidebar() {
             <span className="">Farmacia RejaBlanca</span>
           </Link>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 overflow-auto">
           <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
             <Link href="/dashboard" className={getLinkClass("/dashboard")}>
               <Home className="h-4 w-4" />

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -40,6 +41,9 @@ export function ProveedoresDialog({ trigger, onProveedorCreado }: ProveedoresDia
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Registrar Nuevo Proveedor</DialogTitle>
+          <DialogDescription>
+            Ingrese los datos de la empresa proveedora.
+          </DialogDescription>
         </DialogHeader>
         <ProveedorForm onSuccess={handleSuccess} onCancel={() => setOpen(false)} />
       </DialogContent>

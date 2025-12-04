@@ -147,7 +147,7 @@ export function AddProductModal({ isOpen, onClose, onProductAdded }: AddProductM
                 />
               </div>
                             {similarProducts.length > 0 && (
-                              <div className="col-span-4 col-start-2">
+                              <div className="">
                                 <DialogDescription>
                                   ¿Quisiste decir uno de estos?
                                 </DialogDescription>

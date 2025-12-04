@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRange } from 'react-day-picker';
-import { format, startOfMonth, startOfWeek, startOfToday } from 'date-fns';
+import { format, startOfMonth, startOfWeek, startOfToday, endOfMonth, endOfWeek, endOfToday, endOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export type Preset = 'this_week' | 'this_month' | 'today' | 'all_time' | 'custom';
@@ -33,12 +33,12 @@ export function DateRangeFilter({
   useEffect(() => {
     const today = startOfToday();
     if (defaultRange === 'this_month') {
-       setDate({ from: startOfMonth(today), to: today });
+       setDate({ from: startOfMonth(today), to: endOfToday() });
        // Ensure parent gets the initial date if needed, though usually parent fetches on its own
     } else if (defaultRange === 'this_week') {
-       setDate({ from: startOfWeek(today, { locale: es }), to: today });
+       setDate({ from: startOfWeek(today, { locale: es }), to: endOfToday() });
     } else if (defaultRange === 'today') {
-       setDate({ from: today, to: today });
+       setDate({ from: today, to: endOfToday() });
     } else if (defaultRange === 'all_time') {
        setDate(undefined);
     }
@@ -50,13 +50,13 @@ export function DateRangeFilter({
 
     switch (preset) {
       case 'this_month':
-        newRange = { from: startOfMonth(today), to: today };
+        newRange = { from: startOfMonth(today), to: endOfToday() };
         break;
       case 'this_week':
-        newRange = { from: startOfWeek(today, { locale: es }), to: today };
+        newRange = { from: startOfWeek(today, { locale: es }), to: endOfToday() };
         break;
       case 'today':
-        newRange = { from: today, to: today };
+        newRange = { from: today, to: endOfToday() };
         break;
       case 'all_time':
         newRange = undefined;
@@ -69,8 +69,16 @@ export function DateRangeFilter({
   };
 
   const handleDateSelect = (range: DateRange | undefined) => {
-    setDate(range);
-    onDateChange(range);
+    const adjustedRange = range?.to ? { ...range, to: endOfToday() < range.to ? range.to : endOfToday() } : range; // Just ensuring we don't break it. 
+    // actually, if I select a past date, endOfToday is wrong. I should use endOfDay(range.to).
+    
+    let finalRange = range;
+    if (range?.to) {
+        finalRange = { ...range, to: endOfDay(range.to) };
+    }
+
+    setDate(finalRange);
+    onDateChange(finalRange);
     setInternalPreset('custom');
     if (onPresetChange) onPresetChange('custom'); 
   }

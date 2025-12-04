@@ -62,9 +62,9 @@ export function CategoryForm({ onSuccess, editingCategory }: CategoryFormProps) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <Label htmlFor="nombre">Nombre</Label>
+        <Label htmlFor="nombre" className='pb-2'>Nombre</Label>
         <Input
           id="nombre"
           value={nombre}
@@ -73,7 +73,7 @@ export function CategoryForm({ onSuccess, editingCategory }: CategoryFormProps) 
         />
       </div>
       <div>
-        <Label htmlFor="descripcion">Descripción</Label>
+        <Label htmlFor="descripcion" className='pb-2'>Descripción</Label>
         <Textarea
           id="descripcion"
           value={descripcion}
@@ -81,7 +81,7 @@ export function CategoryForm({ onSuccess, editingCategory }: CategoryFormProps) 
         />
       </div>
       <div>
-        <Label>Emoji</Label>
+        <Label className='pb-2'>Emoji</Label>
         <div className="flex items-center gap-4">
           <Button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
             {emoji ? emoji : 'Seleccionar Emoji'}

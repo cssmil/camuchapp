@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -40,6 +41,9 @@ export function ClientesDialog({ trigger, onClienteCreado }: ClientesDialogProps
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Registrar Nuevo Cliente</DialogTitle>
+          <DialogDescription>
+            Ingrese los datos del cliente para registrarlo en el sistema.
+          </DialogDescription>
         </DialogHeader>
         <ClienteForm onSuccess={handleSuccess} onCancel={() => setOpen(false)} />
       </DialogContent>
