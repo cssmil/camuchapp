@@ -6,6 +6,7 @@ export interface AiResponse {
   data: any[];
   answer: string;
   messageId?: string;
+  trace?: string[];
 }
 
 export interface Conversation {
@@ -20,6 +21,7 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   sql?: string;
+  trace?: string[];
   createdAt: string;
 }
 

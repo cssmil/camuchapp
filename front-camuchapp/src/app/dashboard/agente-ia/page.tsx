@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { aiService, Conversation, Message as ServiceMessage } from '@/services/ai.service';
-import { Loader2, Send, Bot, User, Menu } from 'lucide-react';
+import { Loader2, Send, Bot, User, Menu, ChevronDown, Activity } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { ChatHistorySidebar } from '@/components/features/ai/chat-history-sidebar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // Opcional para móvil, usando layout flex por ahora
@@ -130,6 +131,7 @@ export default function AgenteIaPage() {
         role: 'assistant',
         content: response.answer,
         sql: response.generatedSql,
+        trace: response.trace,
         createdAt: new Date().toISOString()
       };
 
@@ -213,10 +215,30 @@ export default function AgenteIaPage() {
                         </div>
                         </div>
                         
-                        {message.role === 'assistant' && message.sql && (
-                        <div className="text-[10px] text-gray-400 mt-1 px-2 font-mono bg-gray-100 rounded p-1 max-w-full overflow-x-auto">
-                            SQL: {message.sql}
-                        </div>
+                        {message.role === 'assistant' && (
+                          <div className="flex flex-col gap-1 mt-1 w-full max-w-full">
+                            
+                            {/* New Collapsible Trace UI */}
+                            {message.trace && message.trace.length > 0 && (
+                              <Collapsible>
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-6 p-0 text-xs text-gray-400 hover:text-primary w-full justify-start gap-1">
+                                    <Activity className="w-3 h-3" />
+                                    Ver proceso de pensamiento
+                                    <ChevronDown className="w-3 h-3 ml-1" />
+                                  </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="text-[10px] text-gray-500 font-mono bg-gray-50 rounded-md p-2 border mt-1 space-y-1">
+                                  {message.trace.map((step, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                      <span className="text-gray-300 select-none">{idx + 1}.</span>
+                                      <span className="whitespace-pre-wrap break-words">{step.replace(/^> /, '')}</span>
+                                    </div>
+                                  ))}
+                                </CollapsibleContent>
+                              </Collapsible>
+                            )}
+                          </div>
                         )}
                     </div>
                     </div>

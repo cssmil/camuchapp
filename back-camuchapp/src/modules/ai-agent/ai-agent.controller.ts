@@ -1,20 +1,17 @@
 import { Controller, Post, Body, UseGuards, Request, Get, Param, Delete } from '@nestjs/common';
-import { SqlGeneratorService } from './services/sql-generator.service';
-import { SqlGuardService } from './services/sql-guard.service';
-import { SqlExecutorService } from './services/sql-executor.service';
 import { SqlInterpreterService } from './services/sql-interpreter.service';
 import { AiPersistenceService } from './services/ai-persistence.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Controller('ai')
 @UseGuards(JwtAuthGuard)
 export class AiAgentController {
   constructor(
-    private sqlGenerator: SqlGeneratorService,
-    private sqlGuard: SqlGuardService,
-    private sqlExecutor: SqlExecutorService,
     private sqlInterpreter: SqlInterpreterService,
     private aiPersistence: AiPersistenceService,
+    private readonly httpService: HttpService,
   ) {}
 
   // Crear una nueva conversación
@@ -46,34 +43,60 @@ export class AiAgentController {
   async chat(@Request() req, @Param('id') id: string, @Body('message') message: string) {
     const userId = req.user.id;
     
-    // 1. Validar y obtener historial
-    const conversation = await this.aiPersistence.getConversation(id, userId);
-    const history = conversation.messages; // Mensajes previos para contexto
-
     // 2. Guardar mensaje del usuario
     await this.aiPersistence.addMessage(id, 'user', message);
 
-    // 3. Generar SQL con contexto
-    const sql = await this.sqlGenerator.generateSql(message, history);
-    
-    // 4. Validar Seguridad
-    this.sqlGuard.validate(sql);
+    // 3. Llamar al Servidor MCP
+    let data: any;
+    let generatedSql = '';
+    let answer = '';
+    let agentUsed = '';
+    let trace: string[] = [];
 
-    // 5. Ejecutar SQL
-    const data = await this.sqlExecutor.execute(sql);
+    try {
+      const mcpResponse = await firstValueFrom(
+        this.httpService.post('http://localhost:3002/mcp/query', { message })
+      );
+      
+      const result = mcpResponse.data;
+      data = result.answer;
+      agentUsed = result.agentUsed;
+      trace = result.trace || [];
 
-    // 6. Interpretar Resultados
-    const answer = await this.sqlInterpreter.interpret(message, data);
+    } catch (error) {
+      console.error('Error comunicando con MCP:', error.message);
+      answer = 'Lo siento, tuve problemas conectando con mi cerebro central (MCP).';
+      trace.push('❌ Error crítico de conexión con el núcleo MCP.');
+    }
 
-    // 7. Guardar respuesta del asistente
-    const assistantMessage = await this.aiPersistence.addMessage(id, 'assistant', answer, sql);
+    // 4. Procesar respuesta según el agente usado
+    if (agentUsed === 'SQL') {
+      // Extraer SQL del trace si es posible para guardarlo en el campo legacy generatedSql
+      const sqlTrace = trace.find(t => t.includes('SQL Generado:'));
+      if (sqlTrace) {
+          generatedSql = sqlTrace.replace('📝 SQL Generado: ', '').replace(/`/g, '');
+      }
+
+      answer = await this.sqlInterpreter.interpret(message, data);
+    } else if (agentUsed === 'CACHED' || agentUsed === 'RAG') {
+      answer = typeof data === 'string' ? data : JSON.stringify(data);
+    } else if (!answer) {
+      answer = 'No pude procesar tu solicitud.';
+    }
+
+    // NOTA IMPORTANTE: Ya NO adjuntamos la traza al texto de la respuesta.
+    // La enviamos en el campo 'trace' del objeto JSON para que el Frontend la maneje.
+
+    // 6. Guardar respuesta del asistente
+    const assistantMessage = await this.aiPersistence.addMessage(id, 'assistant', answer, generatedSql);
 
     return {
       question: message,
-      generatedSql: sql,
+      generatedSql,
       data,
       answer,
-      messageId: assistantMessage.id
+      messageId: assistantMessage.id,
+      trace: trace // Nuevo campo para el Frontend
     };
   }
 }
